@@ -1,0 +1,11 @@
+secrets.yml
+/portfolio/wake-code.local
+/portfolio/wake/.aws-sam/
+/portfolio/wake/packaged.yml
+/portfolio/rollback.local/
+/frontend/dist-portfolio/
+/build-*.json
+/.cph/
+*/node_modules
+node_modules/
+*/.env
