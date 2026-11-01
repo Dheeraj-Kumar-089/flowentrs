@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  ai-deployment
+  labels:
+    name:  ai-deployment
+spec:
+  replicas: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ai-server
+  template:
+    metadata:
+      labels:
+        app:  ai-server
+    spec:
+      containers:
+      - image:  360821545863.dkr.ecr.ap-south-1.amazonaws.com/ai-orchestration:v1
+        name:  ai-server
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "128M"
+          limits:
+            cpu: "500m"
+            memory: "256M"
+        env:
+          - name: GEMINI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: ai-secret
+                key: GEMINI_API_KEY
+          - name: GEMINI_MODEL
+            value: "gemini-3.6-flash"
+          - name: GROQ_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: ai-secret
+                key: GROQ_API_KEY
+          - name: GROQ_QWEN_MODEL
+            value: "qwen/qwen3.8-27b"
+          - name: GROQ_GPT_OSS_MODEL
+            value: "openai/gpt-oss-120b"
+          - name: OPENROUTER_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: ai-secret
+                key: OPENROUTER_API_KEY
+          - name: OPENROUTER_MODEL
+            value: "openrouter/free"
+        livenessProbe:
+          httpGet:
+            path: /api/status/healthz
+            port: 3000
+          initialDelaySeconds: 90
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/status/healthz
+            port: 3000
+          initialDelaySeconds: 30
+          timeoutSeconds: 10   
+        ports:
+        - containerPort:  3000
+          name:  ai-server-port
+        
