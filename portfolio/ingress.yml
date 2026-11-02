@@ -1,0 +1,70 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: portfolio-ingress
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - api.projectrs.me
+        - '*.projectrs.me'
+      secretName: portfolio-origin-tls
+  rules:
+    - host: api.projectrs.me
+      http:
+        paths:
+          - path: /api/sandbox
+            pathType: Prefix
+            backend:
+              service:
+                name: sandbox-service
+                port:
+                  number: 80
+          - path: /api/ai
+            pathType: Prefix
+            backend:
+              service:
+                name: ai-service
+                port:
+                  number: 80
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 80
+    - host: www.projectrs.me
+      http:
+        paths:
+          - path: /api/sandbox
+            pathType: Prefix
+            backend:
+              service:
+                name: sandbox-service
+                port:
+                  number: 80
+          - path: /api/ai
+            pathType: Prefix
+            backend:
+              service:
+                name: ai-service
+                port:
+                  number: 80
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: auth-service
+                port:
+                  number: 80
+    - host: '*.projectrs.me'
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: router-service
+                port:
+                  number: 80
