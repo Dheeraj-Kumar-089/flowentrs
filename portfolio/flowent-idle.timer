@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Flowent demo idle time once a minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+Persistent=false
+Unit=flowent-idle.service
+
+[Install]
+WantedBy=timers.target

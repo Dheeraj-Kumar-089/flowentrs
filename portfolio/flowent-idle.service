@@ -1,0 +1,9 @@
+[Unit]
+Description=Stop Flowent demo EC2 after sandbox expiry and 10 more idle minutes
+After=k3s.service
+Requires=k3s.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/flowent-portfolio.env
+ExecStart=/usr/local/bin/flowent-idle-stop

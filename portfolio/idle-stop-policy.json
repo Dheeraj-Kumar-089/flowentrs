@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StopOnlyPortfolioInstance",
+      "Effect": "Allow",
+      "Action": "ec2:StopInstances",
+      "Resource": "arn:aws:ec2:ap-south-1:360821545863:instance/i-0de960ffd53719da8"
+    }
+  ]
+}
