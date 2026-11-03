@@ -1,0 +1,76 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ManageWakeLambdaOnly",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:DeleteFunction",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
+        "lambda:GetFunctionConcurrency",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:PutFunctionConcurrency",
+        "lambda:DeleteFunctionConcurrency",
+        "lambda:AddPermission",
+        "lambda:RemovePermission",
+        "lambda:GetPolicy",
+        "lambda:TagResource",
+        "lambda:UntagResource",
+        "lambda:ListTags"
+      ],
+      "Resource": "arn:aws:lambda:ap-south-1:360821545863:function:flowent-portfolio-wake-WakeFunction-*"
+    },
+    {
+      "Sid": "ManageWakeHttpApi",
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:GET",
+        "apigateway:POST",
+        "apigateway:PUT",
+        "apigateway:PATCH",
+        "apigateway:DELETE",
+        "apigateway:TagResource",
+        "apigateway:UntagResource"
+      ],
+      "Resource": [
+        "arn:aws:apigateway:ap-south-1::/apis",
+        "arn:aws:apigateway:ap-south-1::/apis/*",
+        "arn:aws:apigateway:ap-south-1::/tags/*"
+      ]
+    },
+    {
+      "Sid": "ManageWakeLogGroup",
+      "Effect": "Allow",
+      "Action": [
+        "logs:PutRetentionPolicy",
+        "logs:DeleteLogGroup",
+        "logs:TagResource",
+        "logs:UntagResource",
+        "logs:ListTagsForResource",
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": "arn:aws:logs:ap-south-1:360821545863:log-group:flowent-portfolio-wake-WakeAccessLogs-*"
+    },
+    {
+      "Sid": "CreateAndConnectApiLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DescribeLogGroups",
+        "logs:CreateLogDelivery",
+        "logs:PutResourcePolicy",
+        "logs:UpdateLogDelivery",
+        "logs:DeleteLogDelivery",
+        "logs:DescribeResourcePolicies",
+        "logs:GetLogDelivery",
+        "logs:ListLogDeliveries"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

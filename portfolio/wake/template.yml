@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Flowent demo wake API - starts one stopped EC2 instance after access code verification.
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
+  com.aws.cloudformation.Context:
+    ref:
+      - at: portfolio/README.md
+        has: deployment and rollback procedure
+        scope: shared
+Parameters:
+  InstanceId:
+    Type: String
+    AllowedPattern: '^i-[0-9a-f]{8,17}$'
+    Description: Existing demo EC2 instance to start.
+  SiteOrigin:
+    Type: String
+    Default: https://www.projectrs.me
+    AllowedPattern: '^https://[A-Za-z0-9.-]+$'
+  WakeCodeHash:
+    Type: String
+    NoEcho: true
+    AllowedPattern: '^[0-9a-f]{64}$'
+    Description: SHA-256 of a random access code; never pass the plain code to CloudFormation.
+Resources:
+  WakeAccessLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+  WakeApi:
+    Type: AWS::Serverless::HttpApi
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Low-request-cost public entry point for a sleeping demo.
+        must:
+          - Allow only the portfolio site origin in browser CORS.
+          - Throttle repeated requests.
+    Properties:
+      StageName: v1
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref SiteOrigin
+        AllowHeaders:
+          - content-type
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+      DefaultRouteSettings:
+        ThrottlingRateLimit: 2
+        ThrottlingBurstLimit: 2
+      AccessLogSettings:
+        DestinationArn: !GetAtt WakeAccessLogs.Arn
+        Format: '{"requestId":"$context.requestId","status":"$context.status"}'
+  WakeFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Access code gates the only mutating action; status stays readable for UI polling. Uses the account's unreserved concurrency because this account cannot reserve capacity without violating its minimum unreserved pool; the API stage throttles requests.
+        must:
+          - Start permission remains scoped to the named EC2 instance.
+          - Never log the submitted access code.
+    Properties:
+      CodeUri: ./
+      Handler: handler.handler
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      MemorySize: 128
+      Timeout: 10
+      Environment:
+        Variables:
+          INSTANCE_ID: !Ref InstanceId
+          SITE_ORIGIN: !Ref SiteOrigin
+          WAKE_CODE_SHA256: !Ref WakeCodeHash
+      Policies:
+        - Statement:
+            - Sid: StartDemoInstance
+              Effect: Allow
+              Action: ec2:StartInstances
+              Resource: !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/${InstanceId}'
+            - Sid: ReadDemoInstanceState
+              Effect: Allow
+              Action: ec2:DescribeInstances
+              Resource: '*'
+      Events:
+        Status:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref WakeApi
+            Path: /status
+            Method: GET
+        Start:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref WakeApi
+            Path: /start
+            Method: POST
+Outputs:
+  WakeApiUrl:
+    Description: Set this URL as VITE_WAKE_API_URL when building the portfolio frontend.
+    Value: !Sub 'https://${WakeApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/v1'
